@@ -1,4 +1,4 @@
-package com.ssafy.poopa.core.config;
+package com.ssafy.foofa.core.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;

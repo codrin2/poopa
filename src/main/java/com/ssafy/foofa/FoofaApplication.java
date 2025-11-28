@@ -1,13 +1,13 @@
-package com.ssafy.poopa;
+package com.ssafy.foofa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PoopaApplication {
+public class FoofaApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PoopaApplication.class, args);
+        SpringApplication.run(FoofaApplication.class, args);
     }
 
 }

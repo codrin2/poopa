@@ -1,4 +1,4 @@
-package com.ssafy.poopa.core;
+package com.ssafy.foofa.core;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

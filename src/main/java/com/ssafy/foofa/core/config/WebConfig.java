@@ -1,4 +1,4 @@
-package com.ssafy.poopa.core.config;
+package com.ssafy.foofa.core.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

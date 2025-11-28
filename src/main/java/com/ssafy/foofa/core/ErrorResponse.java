@@ -1,4 +1,4 @@
-package com.ssafy.poopa.core;
+package com.ssafy.foofa.core;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,7 +1,7 @@
-package com.ssafy.poopa.core.exception;
+package com.ssafy.foofa.core.exception;
 
-import com.ssafy.poopa.core.ErrorCode;
-import com.ssafy.poopa.core.ErrorResponse;
+import com.ssafy.foofa.core.ErrorCode;
+import com.ssafy.foofa.core.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

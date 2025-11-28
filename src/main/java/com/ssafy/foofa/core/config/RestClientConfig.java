@@ -1,4 +1,4 @@
-package com.ssafy.poopa.core.config;
+package com.ssafy.foofa.core.config;
 
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
