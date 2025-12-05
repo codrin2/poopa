@@ -47,8 +47,10 @@ public enum ErrorCode {
     NOT_FOUND_HOME_ADDRESS(NOT_FOUND, "회원이 저장한 주소를 찾을 수 없습니다. MemberId : %d"),
     UNSUPPORTED_MAP_PROVIDER(BAD_REQUEST, "지원하지 않는 지도 제공자입니다. MapProvider : %s"),
     UNSUPPORTED_ADDRESS_TYPE(BAD_REQUEST, "지원하지 않는 주소 타입입니다. AddressType : %s"),
-    ;
 
+    //Battle
+    NOT_FOUND_BATTLE(NOT_FOUND, "대결을 찾을 수 없습니다. BattleId : %d"),
+    ;
     public final HttpStatus httpStatus;
     private final String message;
 }
