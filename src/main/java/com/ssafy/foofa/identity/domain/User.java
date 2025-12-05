@@ -1,13 +1,15 @@
 package com.ssafy.foofa.identity.domain;
 
+import com.ssafy.foofa.identity.domain.enums.OauthProvider;
 import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
 @Document(collection = "users")
+@CompoundIndex(name = "oauth_info_idx", def = "{'oauthInfo.provider': 1, 'oauthInfo.providerId': 1}", unique = true)
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,20 +19,31 @@ public class User {
     @Id
     private String id;
 
-    @Indexed(unique = true)
-    private String kakaoId;
+    private String email;
+
+    private OauthInfo oauthInfo;
 
     private String nickname;
 
     private String profileImage;
-
-    private String refreshToken;
 
     private Stats stats;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    /**
+     * OAuth 인증 정보
+     */
+    @Getter
+    @Builder
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class OauthInfo {
+        private OauthProvider provider;
+        private String providerId;
+    }
 
     /**
      * 사용자 통계 정보
@@ -56,7 +69,6 @@ public class User {
                     .build();
         }
 
-        // 통계 업데이트를 위한 메서드 (불변성 유지)
         public Stats incrementWins() {
             return Stats.builder()
                     .totalBattles(this.totalBattles + 1)
@@ -79,44 +91,30 @@ public class User {
     }
 
     /**
-     * 새 사용자 생성
+     * OAuth로 새 사용자 등록
      */
-    public static User createNewUser(String kakaoId, String nickname, String profileImage) {
+    public static User registerWithOauth(String email, OauthProvider provider, String providerId) {
         return User.builder()
-                .kakaoId(kakaoId)
-                .nickname(nickname)
-                .profileImage(profileImage)
+                .email(email)
+                .oauthInfo(OauthInfo.builder()
+                        .provider(provider)
+                        .providerId(providerId)
+                        .build())
                 .stats(Stats.createDefault())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
 
     /**
-     * 리프레시 토큰 업데이트 (새 인스턴스 반환)
-     */
-    public User updateRefreshToken(String refreshToken) {
-        return User.builder()
-                .id(this.id)
-                .kakaoId(this.kakaoId)
-                .nickname(this.nickname)
-                .profileImage(this.profileImage)
-                .refreshToken(refreshToken)
-                .stats(this.stats)
-                .createdAt(this.createdAt)
-                .updatedAt(LocalDateTime.now())
-                .build();
-    }
-
-    /**
-     * 프로필 업데이트 (새 인스턴스 반환)
+     * 프로필 업데이트
      */
     public User updateProfile(String nickname, String profileImage) {
         return User.builder()
                 .id(this.id)
-                .kakaoId(this.kakaoId)
+                .email(this.email)
+                .oauthInfo(this.oauthInfo)
                 .nickname(nickname)
                 .profileImage(profileImage)
-                .refreshToken(this.refreshToken)
                 .stats(this.stats)
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
@@ -124,15 +122,15 @@ public class User {
     }
 
     /**
-     * 승리 기록 (새 인스턴스 반환)
+     * 승리 기록
      */
     public User recordWin() {
         return User.builder()
                 .id(this.id)
-                .kakaoId(this.kakaoId)
+                .email(this.email)
+                .oauthInfo(this.oauthInfo)
                 .nickname(this.nickname)
                 .profileImage(this.profileImage)
-                .refreshToken(this.refreshToken)
                 .stats(this.stats.incrementWins())
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
@@ -140,15 +138,15 @@ public class User {
     }
 
     /**
-     * 패배 기록 (새 인스턴스 반환)
+     * 패배 기록
      */
     public User recordLoss() {
         return User.builder()
                 .id(this.id)
-                .kakaoId(this.kakaoId)
+                .email(this.email)
+                .oauthInfo(this.oauthInfo)
                 .nickname(this.nickname)
                 .profileImage(this.profileImage)
-                .refreshToken(this.refreshToken)
                 .stats(this.stats.incrementLosses())
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())

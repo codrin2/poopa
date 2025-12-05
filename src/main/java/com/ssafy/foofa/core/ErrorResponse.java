@@ -13,10 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Schema(description = "API 에러 응답")
 public record ErrorResponse(
-        @Schema(description = "에러 코드", example = "TODO_LIMIT_EXCEEDED")
-        String errorCode,
-
-        @Schema(description = "에러 메시지", example = "오늘 할 일은 최대 3개까지 추가할 수 있습니다.")
+        @Schema(description = "에러 메시지", example = "회원을 찾을 수 없습니다.")
         String message,
 
         @JsonInclude(Include.NON_NULL)
@@ -28,22 +25,16 @@ public record ErrorResponse(
         List<ConstraintViolationError> violationErrors
 ) {
 
-    public ErrorResponse(ErrorCode errorCode) {
-        this(errorCode, null, null);
+    public ErrorResponse(String message) {
+        this(message, null, null);
     }
 
-    public ErrorResponse(ErrorCode errorCode, BindingResult bindingResult) {
-        this(errorCode, FieldError.from(bindingResult), null);
+    public ErrorResponse(String message, BindingResult bindingResult) {
+        this(message, FieldError.from(bindingResult), null);
     }
 
-    public ErrorResponse(ErrorCode errorCode, Set<ConstraintViolation<?>> constraintViolations) {
-        this(errorCode, null, ConstraintViolationError.from(constraintViolations));
-    }
-
-    private ErrorResponse(ErrorCode errorCode,
-                          List<FieldError> fieldErrors,
-                          List<ConstraintViolationError> violationErrors) {
-        this(errorCode.name(), errorCode.getMessage(), fieldErrors, violationErrors);
+    public ErrorResponse(String message, Set<ConstraintViolation<?>> constraintViolations) {
+        this(message, null, ConstraintViolationError.from(constraintViolations));
     }
 
     private record FieldError(String field, Object rejectedValue, String reason) {
