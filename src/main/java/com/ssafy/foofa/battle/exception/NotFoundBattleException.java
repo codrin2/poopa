@@ -1,4 +1,4 @@
-package com.ssafy.foofa.battle.domain.exception;
+package com.ssafy.foofa.battle.exception;
 
 import com.ssafy.foofa.core.exception.NotFoundException;
 

@@ -1,7 +1,7 @@
 package com.ssafy.foofa.battle.application;
 
 import com.ssafy.foofa.battle.domain.Battle;
-import com.ssafy.foofa.battle.domain.exception.NotFoundBattleException;
+import com.ssafy.foofa.battle.exception.NotFoundBattleException;
 import com.ssafy.foofa.battle.domain.repository.BattleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
