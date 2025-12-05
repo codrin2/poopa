@@ -1,5 +1,6 @@
 package com.ssafy.foofa.chat.domain;
 
+import com.ssafy.foofa.core.ErrorCode;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -119,7 +120,7 @@ public class Message {
      */
     public Message markAsRead(String userId) {
         if (!this.readBy.containsKey(userId)) {
-            throw new IllegalArgumentException("User not in readBy map");
+            throw new IllegalArgumentException(ErrorCode.USER_NOT_IN_READBY_MAP.getMessage());
         }
 
         Map<String, LocalDateTime> updatedReadBy = new HashMap<>(this.readBy);
