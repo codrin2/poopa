@@ -1,7 +1,6 @@
-package com.ssafy.foofa.battle.application;
+package com.ssafy.foofa.battle.domain.service;
 
 import com.ssafy.foofa.battle.domain.Battle;
-import com.ssafy.foofa.battle.exception.NotFoundBattleException;
 import com.ssafy.foofa.battle.domain.repository.BattleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,11 +15,7 @@ public class BattleService {
         battleRepository.save(newBattle);
     }
 
-    public void deleteBattle(Battle battle) {
-        battleRepository.delete(battle);
-    }
-
-    public Battle findBattleById(String id) {
-        return battleRepository.findById(id).orElseThrow(() -> new NotFoundBattleException(id));
+    public void deleteByBattleId(String id) {
+        battleRepository.deleteById(id);
     }
 }

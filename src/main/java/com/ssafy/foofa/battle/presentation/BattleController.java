@@ -1,8 +1,9 @@
 package com.ssafy.foofa.battle.presentation;
 
-import com.ssafy.foofa.battle.application.BattleService;
-import com.ssafy.foofa.battle.domain.Battle;
+import com.ssafy.foofa.battle.domain.dto.CreateBattleRequest;
+import com.ssafy.foofa.battle.domain.service.BattleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,15 +14,14 @@ public class BattleController {
     private final BattleService battleService;
 
     @PostMapping
-    public ResponseEntity<String> createBattle(@RequestParam String inviteCode, @RequestParam String hostUserId, @RequestBody Battle.Settings settings) {
-        battleService.createBattle(inviteCode, hostUserId, settings);
-        return ResponseEntity.ok().body("대결을 생성했습니다.");
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createBattle(@RequestBody CreateBattleRequest createBattleRequest) {
+        battleService.createBattle(createBattleRequest.getInviteCode(), createBattleRequest.getHostUserId(), createBattleRequest.getSetting());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBattle(@PathVariable String id) {
-        Battle battle = battleService.findBattleById(id);
-        battleService.deleteBattle(battle);
-        return ResponseEntity.ok().body("대결을 삭제했습니다.");
+    public ResponseEntity<?> deleteBattle(@PathVariable String id) {
+        battleService.deleteByBattleId(id);
+        return ResponseEntity.ok().build();
     }
 }
