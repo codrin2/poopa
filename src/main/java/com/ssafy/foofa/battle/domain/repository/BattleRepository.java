@@ -7,7 +7,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface BattleRepository extends MongoRepository<Battle, String> {
-    List<Battle> getBattlesByStatus(BattleStatus status);
+    List<Battle> findBattleByStatus(BattleStatus status);
 
-    Battle getBattleById(String id);
+    Battle findBattleById(String id);
+
 }

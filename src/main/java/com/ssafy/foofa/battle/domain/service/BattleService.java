@@ -23,10 +23,11 @@ public class BattleService {
     }
 
     public List<Battle> getBattleStatusBattles(BattleStatus status) {
-        return battleRepository.getBattlesByStatus(status);
+        return battleRepository.findBattleByStatus(status);
     }
 
     public Battle getBattleById(String id) {
-        return battleRepository.getBattleById(id);
+        return battleRepository.findBattleById(id);
     }
+
 }
