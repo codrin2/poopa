@@ -6,6 +6,5 @@ import lombok.Getter;
 @Getter
 public class CreateBattleRequest {
     private String inviteCode;
-    private String hostUserId;
     private Battle.Settings setting;
 }

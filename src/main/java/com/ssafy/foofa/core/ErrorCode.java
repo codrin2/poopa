@@ -41,6 +41,7 @@ public enum ErrorCode {
     NO_CHEAT_DAYS_REMAINING("남은 치팅데이가 없습니다."),
     OPPONENT_NOT_FOUND("상대방을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND("멤버를 찾을 수 없습니다."),
+    BATTLE_NOT_COMPLETED("배틀이 완료되지 않았습니다."),
     ;
 
     private final String message;

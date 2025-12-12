@@ -280,4 +280,14 @@ public class Battle {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Member not found"));
     }
+
+    /**
+     * Role을 기준으로 사용자의 Member 객체 조회
+     */
+    public Member getMemberByRole(MemberRole role) {
+        return members.stream()
+                .filter(member -> member.getRole().equals(role))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Member not found"));
+    }
 }
