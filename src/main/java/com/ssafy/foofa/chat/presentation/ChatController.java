@@ -1,7 +1,7 @@
 package com.ssafy.foofa.chat.presentation;
 
 import com.ssafy.foofa.chat.application.ChatFacade;
-import com.ssafy.foofa.chat.presentation.dto.request.SendMessageRequest;
+import com.ssafy.foofa.chat.presentation.dto.SendMessageRequest;
 import com.ssafy.foofa.chat.presentation.swagger.ChatSwagger;
 import com.ssafy.foofa.core.annotation.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +20,9 @@ public class ChatController implements ChatSwagger {
             SendMessageRequest request
     ) {
         chatFacade.sendMessage(
-                request.getBattleId(),
+                request.battleId(),
                 userId,
-                request.getContent()
+                request.content()
         );
     }
 }

@@ -3,8 +3,9 @@ package com.ssafy.foofa.chat.infra;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.foofa.chat.application.ChatMessageProcessor;
-import com.ssafy.foofa.chat.presentation.dto.event.ChatMessageEvent;
+import com.ssafy.foofa.chat.application.event.ChatMessageEvent;
 import com.ssafy.foofa.core.ErrorCode;
+import com.ssafy.foofa.core.dlq.DLQHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -20,7 +21,7 @@ public class RedisMessageSubscriber {
     private static final String CHANNEL_PREFIX = "chat.battle.";
 
     private final ChatMessageProcessor messageProcessor;
-    private final DeadLetterQueueService dlqService;
+    private final DLQHandler dlqHandler;
     private final ObjectMapper objectMapper;
 
     /**
@@ -53,23 +54,17 @@ public class RedisMessageSubscriber {
         } catch (IllegalArgumentException e) {
             // Non-retryable: 메시지 검증 실패 → 즉시 DLQ
             log.error("Validation failed - channel: {}, error: {}", channel, e.getMessage());
-            dlqService.sendToDeadLetterQueue(
-                    channel,
-                    battleId,
+            dlqHandler.sendToDeadLetterQueue(
                     redisMessage != null ? redisMessage.getBody() : new byte[0],
-                    e.getMessage(),
-                    e
+                    e.getMessage()
             );
 
         } catch (JsonProcessingException e) {
             // Non-retryable: 역직렬화 실패 → 즉시 DLQ
             logDeserializationError(redisMessage, channel, e);
-            dlqService.sendToDeadLetterQueue(
-                    channel,
-                    battleId,
+            dlqHandler.sendToDeadLetterQueue(
                     redisMessage.getBody(),
-                    ErrorCode.REDIS_MESSAGE_DESERIALIZATION_FAILED.format(channel),
-                    e
+                    ErrorCode.REDIS_MESSAGE_DESERIALIZATION_FAILED.format(channel)
             );
 
         } catch (MessagingException e) {
@@ -80,12 +75,9 @@ public class RedisMessageSubscriber {
         } catch (Exception e) {
             // 예상치 못한 오류 → DLQ
             log.error("Unexpected error - channel: {}, battleId: {}", channel, battleId, e);
-            dlqService.sendToDeadLetterQueue(
-                    channel,
-                    battleId,
+            dlqHandler.sendToDeadLetterQueue(
                     redisMessage != null ? redisMessage.getBody() : new byte[0],
-                    "Unexpected error: " + e.getMessage(),
-                    e
+                    "Unexpected error: " + e.getMessage()
             );
         }
     }
