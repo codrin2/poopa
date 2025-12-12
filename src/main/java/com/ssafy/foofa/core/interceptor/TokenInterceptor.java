@@ -19,14 +19,15 @@ public class TokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith(BEARER_PREFIX)) {
-            String token = header.substring(BEARER_PREFIX.length());
-            try {
-                TokenInfo tokenInfo = tokenManager.parseClaims(token);
-                request.setAttribute("userId", tokenInfo.memberId());
-            } catch (IllegalArgumentException ex) {
-                throw new IllegalArgumentException(ErrorCode.TOKEN_INVALID.getMessage());
-            }
+        if (header == null || !header.startsWith(BEARER_PREFIX)) {
+            throw new IllegalArgumentException(ErrorCode.TOKEN_MISSING.getMessage());
+        }
+        String token = header.substring(BEARER_PREFIX.length());
+        try {
+            TokenInfo tokenInfo = tokenManager.parseClaims(token);
+            request.setAttribute("userId", tokenInfo.memberId());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(ErrorCode.TOKEN_INVALID.getMessage());
         }
         return true;
     }
