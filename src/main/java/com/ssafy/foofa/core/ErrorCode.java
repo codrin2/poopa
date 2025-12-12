@@ -34,13 +34,32 @@ public enum ErrorCode {
 
     // Chat
     USER_NOT_IN_READBY_MAP("사용자가 readBy 맵에 존재하지 않습니다."),
+    MESSAGE_CONTENT_EMPTY("메시지 내용은 비어있을 수 없습니다."),
+    MESSAGE_CONTENT_TOO_LONG("메시지 내용이 최대 길이(%d자)를 초과했습니다."),
+    MESSAGE_CONTENT_HTML_NOT_ALLOWED("메시지 내용에 HTML 태그는 허용되지 않습니다."),
+
+    // Redis
+    REDIS_MESSAGE_NULL("Redis 메시지가 null입니다."),
+    REDIS_MESSAGE_EMPTY("Redis 메시지 본문이 비어있습니다."),
+    REDIS_CHANNEL_INVALID("Redis 채널 형식이 잘못되었습니다. channel: %s"),
+    REDIS_MESSAGE_DESERIALIZATION_FAILED("Redis 메시지 역직렬화에 실패했습니다. channel: %s"),
+    WEBSOCKET_MESSAGE_SEND_FAILED("WebSocket 메시지 전송에 실패했습니다. battleId: %s"),
+    MESSAGE_SENT_TO_DLQ("메시지가 Dead Letter Queue로 전송되었습니다. reason: %s"),
+    MESSAGE_RETRY_EXHAUSTED("재시도 횟수를 초과했습니다. maxAttempts: %d"),
+
+    // Outbox
+    OUTBOX_EVENT_PUBLISH_FAILED("Outbox 이벤트 발행에 실패했습니다. eventId: %s"),
+    OUTBOX_EVENT_MAX_RETRY_EXCEEDED("Outbox 이벤트 최대 재시도 횟수를 초과했습니다. eventId: %s"),
 
     // Battle
+    BATTLE_NOT_FOUND("대결을 찾을 수 없습니다."),
     BATTLE_ALREADY_FULL("대결에 이미 2명의 멤버가 있습니다."),
     BATTLE_NEEDS_TWO_MEMBERS("대결을 시작하려면 정확히 2명의 멤버가 필요합니다."),
+    BATTLE_NOT_ACTIVE("대결이 활성 상태가 아닙니다."),
     NO_CHEAT_DAYS_REMAINING("남은 치팅데이가 없습니다."),
     OPPONENT_NOT_FOUND("상대방을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND("멤버를 찾을 수 없습니다."),
+    USER_NOT_BATTLE_MEMBER("사용자가 이 대결의 멤버가 아닙니다."),
     ;
 
     private final String message;
