@@ -36,7 +36,6 @@ public class OutboxEvent {
 
     public static OutboxEvent create(String eventType, String payload) {
         return OutboxEvent.builder()
-                // .id() 제거! MongoDB가 자동 생성
                 .eventType(eventType)
                 .payload(payload)
                 .status(OutboxStatus.PENDING)

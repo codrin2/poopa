@@ -1,7 +1,7 @@
 package com.ssafy.foofa.core.outbox;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.foofa.chat.presentation.dto.event.ChatMessageEvent;
+import com.ssafy.foofa.chat.application.event.ChatMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
