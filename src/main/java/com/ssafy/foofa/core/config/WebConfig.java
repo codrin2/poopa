@@ -1,17 +1,18 @@
 package com.ssafy.foofa.core.config;
 
-import com.ssafy.foofa.core.interceptor.TokenInterceptor;
+import com.ssafy.foofa.core.resolver.HttpCurrentUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
-
-    private final TokenInterceptor tokenInterceptor;
+    private final HttpCurrentUserArgumentResolver httpCurrentUserArgumentResolver;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -23,9 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tokenInterceptor)
-                .addPathPatterns("/battles/**")  // 인증 필요한 경로만
-                .excludePathPatterns("/auth/**");  // 인증 불필요한 경로 제외
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(httpCurrentUserArgumentResolver);
     }
 }

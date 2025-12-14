@@ -1,6 +1,6 @@
 package com.ssafy.foofa.chat.domain;
 
-import com.ssafy.foofa.core.ErrorCode;
+import com.ssafy.foofa.core.annotation.AggregateRoot;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@AggregateRoot
 @Document(collection = "messages")
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Message {
-
     @Id
     private String id;
 
@@ -27,104 +27,43 @@ public class Message {
 
     private MessageType type;
 
-    private String content;
+    private MessageContent content;
 
     @Builder.Default
-    private Map<String, Object> metadata = new HashMap<>();
-
-    @Builder.Default
-    private Map<String, LocalDateTime> readBy = new HashMap<>();
+    private Map<String, ReadReceipt> readReceipts = new HashMap<>();
 
     private LocalDateTime createdAt;
 
-    /**
-     * 일반 텍스트 메시지 생성
-     */
-    public static Message createTextMessage(String battleId, String senderId, String content,
-                                            String userId1, String userId2) {
-        Map<String, LocalDateTime> readBy = new HashMap<>();
-        LocalDateTime now = LocalDateTime.now();
-
-        readBy.put(userId1, userId1.equals(senderId) ? now : null);
-        readBy.put(userId2, userId2.equals(senderId) ? now : null);
-
+    public static Message createNew(String battleId, String senderId, String content) {
         return Message.builder()
                 .battleId(battleId)
                 .senderId(senderId)
                 .type(MessageType.TEXT)
-                .content(content)
-                .readBy(readBy)
-                .createdAt(now)
-                .build();
-    }
-
-    /**
-     * 식사 인증 시스템 메시지 생성
-     */
-    public static Message createCheckInSystemMessage(String battleId, String userId, String userName,
-                                                     String checkInId, int score, String mealTime,
-                                                     String opponentUserId) {
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("checkInId", checkInId);
-        metadata.put("score", score);
-        metadata.put("mealTime", mealTime);
-        metadata.put("userName", userName);
-
-        Map<String, LocalDateTime> readBy = new HashMap<>();
-        readBy.put(userId, null);
-        readBy.put(opponentUserId, null);
-
-        String content = String.format("%s님이 %s 식사를 인증했습니다. (점수: %d점)",
-                userName, mealTime, score);
-
-        return Message.builder()
-                .battleId(battleId)
-                .senderId(null)
-                .type(MessageType.SYSTEM_CHECK_IN)
-                .content(content)
-                .metadata(metadata)
-                .readBy(readBy)
+                .content(MessageContent.of(content))
                 .createdAt(LocalDateTime.now())
+                .readReceipts(initializeReadReceipts(senderId))
                 .build();
     }
 
     /**
-     * 치팅데이 사용 시스템 메시지 생성
+     * 읽음 상태 초기화 (발신자는 읽음 처리)
      */
-    public static Message createCheatDaySystemMessage(String battleId, String userId, String userName,
-                                                      String mealTime, String opponentUserId) {
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("mealTime", mealTime);
-        metadata.put("userName", userName);
-
-        Map<String, LocalDateTime> readBy = new HashMap<>();
-        readBy.put(userId, null);
-        readBy.put(opponentUserId, null);
-
-        String content = String.format("%s님이 %s 치팅데이를 사용했습니다.",
-                userName, mealTime);
-
-        return Message.builder()
-                .battleId(battleId)
-                .senderId(null)
-                .type(MessageType.SYSTEM_CHEAT_DAY)
-                .content(content)
-                .metadata(metadata)
-                .readBy(readBy)
-                .createdAt(LocalDateTime.now())
-                .build();
+    private static Map<String, ReadReceipt> initializeReadReceipts(String senderId) {
+        Map<String, ReadReceipt> receipts = new HashMap<>();
+        receipts.put(senderId, ReadReceipt.createRead(senderId));
+        return receipts;
     }
 
     /**
-     * 메시지 읽음 처리 (새 인스턴스 반환)
+     * 메시지 읽음 처리
      */
-    public Message markAsRead(String userId) {
-        if (!this.readBy.containsKey(userId)) {
-            throw new IllegalArgumentException(ErrorCode.USER_NOT_IN_READBY_MAP.getMessage());
+    public Message markAsReadBy(String userId) {
+        if (readReceipts.containsKey(userId) && readReceipts.get(userId).isRead()) {
+            return this;  // 이미 읽음
         }
 
-        Map<String, LocalDateTime> updatedReadBy = new HashMap<>(this.readBy);
-        updatedReadBy.put(userId, LocalDateTime.now());
+        Map<String, ReadReceipt> updatedReceipts = new HashMap<>(this.readReceipts);
+        updatedReceipts.put(userId, ReadReceipt.createRead(userId));
 
         return Message.builder()
                 .id(this.id)
@@ -132,8 +71,7 @@ public class Message {
                 .senderId(this.senderId)
                 .type(this.type)
                 .content(this.content)
-                .metadata(this.metadata)
-                .readBy(updatedReadBy)
+                .readReceipts(updatedReceipts)
                 .createdAt(this.createdAt)
                 .build();
     }
@@ -142,13 +80,29 @@ public class Message {
      * 특정 사용자가 읽었는지 확인
      */
     public boolean isReadBy(String userId) {
-        return this.readBy.get(userId) != null;
+        ReadReceipt receipt = readReceipts.get(userId);
+        return receipt != null && receipt.isRead();
     }
 
     /**
-     * 시스템 메시지인지 확인
+     * 수신자를 안읽음으로 추가
      */
-    public boolean isSystemMessage() {
-        return this.senderId == null;
+    public Message addUnreadRecipient(String userId) {
+        if (readReceipts.containsKey(userId)) {
+            return this;
+        }
+
+        Map<String, ReadReceipt> updatedReceipts = new HashMap<>(this.readReceipts);
+        updatedReceipts.put(userId, ReadReceipt.createUnread(userId));
+
+        return Message.builder()
+                .id(this.id)
+                .battleId(this.battleId)
+                .senderId(this.senderId)
+                .type(this.type)
+                .content(this.content)
+                .readReceipts(updatedReceipts)
+                .createdAt(this.createdAt)
+                .build();
     }
 }

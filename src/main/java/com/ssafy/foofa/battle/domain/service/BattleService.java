@@ -4,6 +4,7 @@ import com.ssafy.foofa.battle.domain.Battle;
 import com.ssafy.foofa.battle.domain.BattleStatus;
 import com.ssafy.foofa.battle.domain.MemberRole;
 import com.ssafy.foofa.battle.domain.repository.BattleRepository;
+import com.ssafy.foofa.core.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -50,4 +51,8 @@ public class BattleService {
         });
     }
 
+    public Battle validateAndGetBattle(String battleId) {
+        return battleRepository.findById(battleId)
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.BATTLE_NOT_FOUND.getMessage()));
+    }
 }

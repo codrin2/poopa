@@ -16,14 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/battles")
 @RequiredArgsConstructor
-public class BattleController implements BattleSwagger {
+public class BattleController {
     private final BattleService battleService;
     private final BattleFacade battleFacade;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createBattle(@RequestBody CreateBattleRequest createBattleRequest,  @RequestAttribute("userId") String userId) {
-        battleService.createBattle(createBattleRequest.getInviteCode(), userId, createBattleRequest.getSetting());
+    public void createBattle(@RequestBody CreateBattleRequest createBattleRequest) {
+        battleService.createBattle(createBattleRequest.inviteCode(), createBattleRequest.hostUserId(), createBattleRequest.setting());
     }
 
     @DeleteMapping("/{id}")

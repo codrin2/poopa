@@ -1,5 +1,6 @@
 package com.ssafy.foofa.battle.domain;
 
+import com.ssafy.foofa.core.ErrorCode;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -98,9 +99,6 @@ public class Battle {
                     .build();
         }
 
-        /**
-         * 점수 추가 (새 인스턴스 반환)
-         */
         public Member addScore(int points) {
             return Member.builder()
                     .userId(this.userId)
@@ -117,7 +115,7 @@ public class Battle {
          */
         public Member useCheatDay() {
             if (this.remainingCheatDays <= 0) {
-                throw new IllegalStateException("No cheat days remaining");
+                throw new IllegalStateException(ErrorCode.NO_CHEAT_DAYS_REMAINING.getMessage());
             }
 
             return Member.builder()
@@ -145,9 +143,6 @@ public class Battle {
         }
     }
 
-    /**
-     * 마지막 메시지
-     */
     @Getter
     @Builder
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -183,7 +178,7 @@ public class Battle {
      */
     public Battle addGuest(String guestUserId) {
         if (this.members.size() >= 2) {
-            throw new IllegalStateException("Battle already has 2 members");
+            throw new IllegalStateException(ErrorCode.BATTLE_ALREADY_FULL.getMessage());
         }
 
         List<Member> updatedMembers = new ArrayList<>(this.members);
@@ -213,7 +208,7 @@ public class Battle {
      */
     public Battle start() {
         if (this.members.size() != 2) {
-            throw new IllegalStateException("Battle needs exactly 2 members to start");
+            throw new IllegalStateException(ErrorCode.BATTLE_NEEDS_TWO_MEMBERS.getMessage());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -268,7 +263,7 @@ public class Battle {
                 .map(Member::getUserId)
                 .filter(id -> !id.equals(myUserId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Opponent not found"));
+                .orElseThrow(() -> new IllegalStateException(ErrorCode.OPPONENT_NOT_FOUND.getMessage()));
     }
 
     /**
@@ -278,7 +273,22 @@ public class Battle {
         return members.stream()
                 .filter(member -> member.getUserId().equals(userId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Member not found"));
+                .orElseThrow(() -> new IllegalStateException(ErrorCode.MEMBER_NOT_FOUND.getMessage()));
+    }
+
+    /**
+     * 사용자가 대결 참여자인지 확인
+     */
+    public boolean isMember(String userId) {
+        return members.stream()
+                .anyMatch(member -> member.getUserId().equals(userId));
+    }
+
+    /**
+     * 대결이 활성 상태인지 확인 (PENDING 또는 IN_PROGRESS)
+     */
+    public boolean isActive() {
+        return status == BattleStatus.PENDING || status == BattleStatus.IN_PROGRESS;
     }
 
     /**
