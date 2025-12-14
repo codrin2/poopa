@@ -2,9 +2,6 @@ package com.ssafy.foofa.core.resolver;
 
 import com.ssafy.foofa.core.ErrorCode;
 import com.ssafy.foofa.core.annotation.CurrentUser;
-import com.ssafy.foofa.core.util.TokenExtractor;
-import com.ssafy.foofa.identity.application.TokenManager;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
@@ -17,9 +14,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-    private final TokenManager tokenManager;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -28,39 +23,24 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     }
 
     /**
-     * WebSocket 메시지 헤더에서 JWT 토큰 추출 및 userId 반환
+     * WebSocket 세션에서 userId 추출 (토큰 재검증 없음)
      */
     @Override
     public Object resolveArgument(
             MethodParameter parameter,
             Message<?> message
     ) {
-        try {
-            // WebSocket 헤더에서 Authorization 추출
-            String authorization = extractAuthorizationHeader(message);
-
-            // Authorization에서 JWT 토큰 추출
-            String token = TokenExtractor.extractToken(authorization);
-
-            // JWT 파싱 및 userId 추출
-            String userId = TokenExtractor.parseUserId(token, tokenManager);
-
-            return userId;
-
-        } catch (Exception e) {
-            log.error("Failed to resolve userId from WebSocket message", e);
-            throw e;
-        }
-    }
-
-    private String extractAuthorizationHeader(Message<?> message) {
         SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(message);
-        String authorization = accessor.getFirstNativeHeader("Authorization");
 
-        if (authorization == null || authorization.isBlank()) {
-            throw new IllegalArgumentException(ErrorCode.TOKEN_MISSING.getMessage());
+        // CONNECT 시점에 저장한 userId 조회
+        String userId = (String) accessor.getSessionAttributes().get("userId");
+
+        if (userId == null) {
+            log.error("userId not found in WebSocket session - sessionId: {}",
+                    accessor.getSessionId());
+            throw new IllegalArgumentException(ErrorCode.TOKEN_INVALID.getMessage());
         }
 
-        return authorization;
+        return userId;
     }
 }
