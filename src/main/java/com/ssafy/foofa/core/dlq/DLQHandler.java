@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -16,7 +16,7 @@ public class DLQHandler {
     private static final String DLQ_KEY = "chat:dlq:messages";
     private static final long DLQ_TTL_DAYS = 7;
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
     /**
@@ -79,13 +79,13 @@ public class DLQHandler {
         String jsonMessage = objectMapper.writeValueAsString(dlqMessage);
 
         // Redis List의 왼쪽(앞)에 추가
-        redisTemplate.opsForList().leftPush(DLQ_KEY, jsonMessage);
+        stringRedisTemplate.opsForList().leftPush(DLQ_KEY, jsonMessage);
 
         // TTL 설정 (7일)
-        redisTemplate.expire(DLQ_KEY, DLQ_TTL_DAYS, TimeUnit.DAYS);
+        stringRedisTemplate.expire(DLQ_KEY, DLQ_TTL_DAYS, TimeUnit.DAYS);
     }
 
     public Long getDlqMessageCount() {
-        return redisTemplate.opsForList().size(DLQ_KEY);
+        return stringRedisTemplate.opsForList().size(DLQ_KEY);
     }
 }

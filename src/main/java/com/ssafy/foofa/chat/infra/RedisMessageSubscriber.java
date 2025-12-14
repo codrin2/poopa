@@ -9,6 +9,7 @@ import com.ssafy.foofa.core.dlq.DLQHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisMessageSubscriber {
+public class RedisMessageSubscriber implements MessageListener {
     private static final String CHANNEL_PREFIX = "chat.battle.";
 
     private final ChatMessageProcessor messageProcessor;
@@ -30,40 +31,41 @@ public class RedisMessageSubscriber {
      * 2. 역직렬화 (Non-retryable) → 실패 시 즉시 DLQ
      * 3. 메시지 처리 (Retryable) → ChatMessageProcessor로 위임
      */
-    public void onMessage(Message redisMessage, byte[] pattern) {
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
         String channel = null;
         String battleId = null;
 
         try {
             // 메시지 검증 (Non-retryable)
-            validateMessage(redisMessage);
-            channel = new String(redisMessage.getChannel());
+            validateMessage(message);
+            channel = new String(message.getChannel());
             battleId = extractBattleId(channel);
 
             // 메시지 역직렬화 (Non-retryable)
-            ChatMessageEvent event = deserializeMessage(redisMessage, channel);
+            ChatMessageEvent event = deserializeMessage(message, channel);
 
             // 메시지 처리 (Retryable - processor에서 재시도 처리)
             messageProcessor.processMessage(
                     channel,
                     battleId,
                     event,
-                    redisMessage.getBody()
+                    message.getBody()
             );
 
         } catch (IllegalArgumentException e) {
             // Non-retryable: 메시지 검증 실패 → 즉시 DLQ
             log.error("Validation failed - channel: {}, error: {}", channel, e.getMessage());
             dlqHandler.sendToDeadLetterQueue(
-                    redisMessage != null ? redisMessage.getBody() : new byte[0],
+                    message != null ? message.getBody() : new byte[0],
                     e.getMessage()
             );
 
         } catch (JsonProcessingException e) {
             // Non-retryable: 역직렬화 실패 → 즉시 DLQ
-            logDeserializationError(redisMessage, channel, e);
+            logDeserializationError(message, channel, e);
             dlqHandler.sendToDeadLetterQueue(
-                    redisMessage.getBody(),
+                    message.getBody(),
                     ErrorCode.REDIS_MESSAGE_DESERIALIZATION_FAILED.format(channel)
             );
 
@@ -76,22 +78,22 @@ public class RedisMessageSubscriber {
             // 예상치 못한 오류 → DLQ
             log.error("Unexpected error - channel: {}, battleId: {}", channel, battleId, e);
             dlqHandler.sendToDeadLetterQueue(
-                    redisMessage != null ? redisMessage.getBody() : new byte[0],
+                    message != null ? message.getBody() : new byte[0],
                     "Unexpected error: " + e.getMessage()
             );
         }
     }
 
-    private void validateMessage(Message redisMessage) {
-        if (redisMessage == null) {
+    private void validateMessage(Message message) {
+        if (message == null) {
             throw new IllegalArgumentException(ErrorCode.REDIS_MESSAGE_NULL.getMessage());
         }
 
-        if (redisMessage.getBody() == null || redisMessage.getBody().length == 0) {
+        if (message.getBody() == null || message.getBody().length == 0) {
             throw new IllegalArgumentException(ErrorCode.REDIS_MESSAGE_EMPTY.getMessage());
         }
 
-        if (redisMessage.getChannel() == null || redisMessage.getChannel().length == 0) {
+        if (message.getChannel() == null || message.getChannel().length == 0) {
             throw new IllegalArgumentException(ErrorCode.REDIS_CHANNEL_INVALID.format("null or empty"));
         }
     }
@@ -113,10 +115,10 @@ public class RedisMessageSubscriber {
     /**
      * Redis 메시지를 ChatMessageEvent로 역직렬화
      */
-    private ChatMessageEvent deserializeMessage(Message redisMessage, String channel) throws JsonProcessingException {
+    private ChatMessageEvent deserializeMessage(Message message, String channel) throws JsonProcessingException {
         try {
             return objectMapper.readValue(
-                    redisMessage.getBody(),
+                    message.getBody(),
                     ChatMessageEvent.class
             );
         } catch (IOException e) {
@@ -127,8 +129,8 @@ public class RedisMessageSubscriber {
     /**
      * 역직렬화 오류 상세 로깅 (디버깅 및 모니터링용)
      */
-    private void logDeserializationError(Message redisMessage, String channel, JsonProcessingException e) {
-        String rawMessage = new String(redisMessage.getBody());
+    private void logDeserializationError(Message message, String channel, JsonProcessingException e) {
+        String rawMessage = new String(message.getBody());
         log.error("Message deserialization failed - channel: {}, rawMessage: {}, error: {}",
                 channel,
                 rawMessage.length() > 500 ? rawMessage.substring(0, 500) + "..." : rawMessage,

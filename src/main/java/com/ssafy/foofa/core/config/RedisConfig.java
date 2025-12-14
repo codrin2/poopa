@@ -1,5 +1,7 @@
 package com.ssafy.foofa.core.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssafy.foofa.chat.infra.RedisMessageSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +9,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -19,7 +21,7 @@ public class RedisConfig {
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisConnectionFactory connectionFactory,
-            MessageListenerAdapter listenerAdapter,
+            RedisMessageSubscriber subscriber,
             Executor redisMessageExecutor
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
@@ -27,14 +29,9 @@ public class RedisConfig {
         container.setTaskExecutor(redisMessageExecutor);
 
         // 패턴 기반 구독: chat.battle.*
-        container.addMessageListener(listenerAdapter, new PatternTopic("chat.battle.*"));
+        container.addMessageListener(subscriber, new PatternTopic("chat.battle.*"));
 
         return container;
-    }
-
-    @Bean
-    public MessageListenerAdapter listenerAdapter(RedisMessageSubscriber subscriber) {
-        return new MessageListenerAdapter(subscriber, "onMessage");
     }
 
     @Bean
@@ -51,17 +48,26 @@ public class RedisConfig {
     }
 
     /**
-     * DLQ 저장용 RedisTemplate
-     * Key: String, Value: String (JSON)
+     * 메시지 발행용 RedisTemplate
+     * Key: String, Value: Object (JSON 직렬화)
      */
     @Bean
-    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, String> template = new RedisTemplate<>();
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+
+        // Key는 String 직렬화
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
+
+        // Value는 JSON 직렬화 (LocalDateTime 지원)
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        template.setValueSerializer(jsonSerializer);
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(jsonSerializer);
+
         return template;
     }
 }
