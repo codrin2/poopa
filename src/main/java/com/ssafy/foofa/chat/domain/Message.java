@@ -1,6 +1,6 @@
 package com.ssafy.foofa.chat.domain;
 
-import com.ssafy.foofa.core.AggregateRoot;
+import com.ssafy.foofa.core.annotation.AggregateRoot;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
