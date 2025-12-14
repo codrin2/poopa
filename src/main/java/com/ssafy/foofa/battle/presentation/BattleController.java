@@ -16,7 +16,7 @@ public class BattleController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createBattle(@RequestBody CreateBattleRequest createBattleRequest) {
-        battleService.createBattle(createBattleRequest.getInviteCode(), createBattleRequest.getHostUserId(), createBattleRequest.getSetting());
+        battleService.createBattle(createBattleRequest.inviteCode(), createBattleRequest.hostUserId(), createBattleRequest.setting());
     }
 
     @DeleteMapping("/{id}")
