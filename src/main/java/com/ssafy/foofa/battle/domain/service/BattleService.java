@@ -26,12 +26,8 @@ public class BattleService {
         battleRepository.deleteById(id);
     }
 
-    public List<Battle> getBattleStatusBattles(BattleStatus status) {
-        return battleRepository.findBattleByStatus(status);
-    }
-
-    public Battle getBattleById(String id) {
-        return battleRepository.findBattleById(id);
+    public List<Battle> getBattleStatus(BattleStatus status, String userId) {
+        return battleRepository.findByStatusAndMembers_UserId(status, userId);
     }
 
     public void completeExpiredBattles() {
@@ -41,7 +37,7 @@ public class BattleService {
             case 14 -> now = now.plusHours(4);
             case 20 -> now = now.plusHours(11);
         }
-        List<Battle> expiredBattles = battleRepository.findBattleByStatusAndEndDateBefore(BattleStatus.IN_PROGRESS, now);
+        List<Battle> expiredBattles = battleRepository.findByStatusAndEndDateBefore(BattleStatus.IN_PROGRESS, now);
         expiredBattles.forEach(battle -> {
             Battle.Member host = battle.getMemberByRole(MemberRole.HOST);
             Battle.Member guest = battle.getMemberByRole(MemberRole.GUEST);

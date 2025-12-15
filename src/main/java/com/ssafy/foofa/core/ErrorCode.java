@@ -60,6 +60,7 @@ public enum ErrorCode {
     OPPONENT_NOT_FOUND("상대방을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND("멤버를 찾을 수 없습니다."),
     USER_NOT_BATTLE_MEMBER("사용자가 이 대결의 멤버가 아닙니다."),
+    BATTLE_NOT_COMPLETED("대결이 완료되지 않았습니다."),
     ;
 
     private final String message;

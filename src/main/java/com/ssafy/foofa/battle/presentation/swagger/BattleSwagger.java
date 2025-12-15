@@ -2,8 +2,11 @@ package com.ssafy.foofa.battle.presentation.swagger;
 
 import com.ssafy.foofa.battle.domain.Battle;
 import com.ssafy.foofa.battle.domain.BattleStatus;
-import com.ssafy.foofa.battle.domain.dto.CreateBattleRequest;
+import com.ssafy.foofa.battle.presentation.dto.BattleListResponse;
+import com.ssafy.foofa.battle.presentation.dto.BattleResultResponse;
+import com.ssafy.foofa.battle.presentation.dto.CreateBattleRequest;
 import com.ssafy.foofa.core.ErrorResponse;
+import com.ssafy.foofa.core.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,7 +74,7 @@ public interface BattleSwagger {
                     }"""
             )
             @RequestBody CreateBattleRequest createBattleRequest,
-            @RequestAttribute("userId") String userId
+            @Parameter(hidden = true) @CurrentUser String userId
     );
 
     /*──────────────────────────────────────────────────────
@@ -130,33 +133,12 @@ public interface BattleSwagger {
                                             value = """
                         [
                           {
-                            "id": "67567d5e8a9b123456789abc",
-                            "inviteCode": "ABC123",
-                            "status": "IN_PROGRESS",
-                            "settings": {
-                              "duration": 7,
-                              "mealTimes": ["BREAKFAST", "LUNCH", "DINNER"],
-                              "maxCheatDays": 2
-                            },
-                            "members": [
-                              {
-                                "userId": "user123",
-                                "role": "HOST",
-                                "score": 15,
-                                "remainingCheatDays": 1,
-                                "isWinner": false
-                              },
-                              {
-                                "userId": "user456",
-                                "role": "GUEST",
-                                "score": 12,
-                                "remainingCheatDays": 2,
-                                "isWinner": false
-                              }
-                            ],
-                            "winnerId": null,
-                            "startDate": "2025-12-01T09:00:00",
-                            "endDate": "2025-12-08T09:00:00"
+                            "battleId": "67567d5e8a9b123456789abc",
+                            "myScore" : 100,
+                            "mealTimes": ["BREAKFAST", "LUNCH", "DINNER"],
+                            "remainingDays" : 3,
+                            "oppenentName" : "이름" ,
+                            "oppenentScore" : 120,
                           }
                         ]"""
                                     )
@@ -165,13 +147,14 @@ public interface BattleSwagger {
             }
     )
     @GetMapping
-    ResponseEntity<List<Battle>> getBattlesByStatus(
+    ResponseEntity<List<BattleListResponse>> getBattlesByStatus(
             @Parameter(
                     description = "대결 상태",
                     required = true,
                     schema = @Schema(allowableValues = {"PENDING", "IN_PROGRESS", "COMPLETED"})
             )
-            @RequestParam BattleStatus status
+            @RequestParam BattleStatus status,
+            @Parameter(hidden = true) @CurrentUser String userId
     );
 
     /*──────────────────────────────────────────────────────
@@ -192,12 +175,11 @@ public interface BattleSwagger {
                                     examples = @ExampleObject(
                                             value = """
                         {
-                          "userId": "user123",
-                          "role": "HOST",
-                          "score": 18,
-                          "remainingCheatDays": 0,
-                          "isWinner": true,
-                          "joinedAt": "2025-12-01T09:00:00"
+                          "battleId" : "67567d5e8a9b123456789abc",
+                          "myScore" : 100,
+                          "oppenentName" : "이름",
+                          "oppenetScore" : 120,
+                          "isWinner" : false,
                         }"""
                                     )
                             )
@@ -213,7 +195,7 @@ public interface BattleSwagger {
                                                     summary = "대결 미완료",
                                                     value = """
                         {
-                          "message": "배틀이 완료되지 않았습니다."
+                          "message": "대결이 완료되지 않았습니다."
                         }"""
                                             ),
                                             @ExampleObject(
@@ -243,9 +225,9 @@ public interface BattleSwagger {
             }
     )
     @GetMapping("/{battleId}/result")
-    ResponseEntity<Battle.Member> getBattleResult(
+    ResponseEntity<BattleResultResponse> getBattleResult(
             @Parameter(description = "대결 ID", required = true)
             @PathVariable String battleId,
-            @RequestAttribute("userId") String userId
+            @Parameter(hidden = true) @CurrentUser String userId
     );
 }
