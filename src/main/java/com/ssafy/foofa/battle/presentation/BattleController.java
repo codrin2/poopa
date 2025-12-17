@@ -2,7 +2,7 @@ package com.ssafy.foofa.battle.presentation;
 
 import com.ssafy.foofa.battle.application.BattleFacade;
 import com.ssafy.foofa.battle.domain.BattleStatus;
-import com.ssafy.foofa.battle.presentation.dto.BattleListResponse;
+import com.ssafy.foofa.battle.presentation.dto.BattleResponse;
 import com.ssafy.foofa.battle.presentation.dto.BattleResultResponse;
 import com.ssafy.foofa.battle.presentation.dto.CreateBattleRequest;
 import com.ssafy.foofa.battle.domain.service.BattleService;
@@ -35,7 +35,7 @@ public class BattleController implements BattleSwagger{
     }
 
     @GetMapping
-    public ResponseEntity<List<BattleListResponse>> getBattlesByStatus(@RequestParam BattleStatus status, @CurrentUser String userId) {
+    public ResponseEntity<List<BattleResponse>> getBattlesByStatus(@RequestParam BattleStatus status, @CurrentUser String userId) {
         return ResponseEntity.ok(battleFacade.getBattleList(status, userId));
     }
 

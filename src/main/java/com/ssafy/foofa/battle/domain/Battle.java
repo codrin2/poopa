@@ -267,6 +267,17 @@ public class Battle {
     }
 
     /**
+     * 특정 사용자의 상대방 ID 조회(없으면 null 값 반환)
+     */
+    public String getOpponentUserIdOrNull(String myUserId) {
+        return members.stream()
+                .map(Member::getUserId)
+                .filter(id -> !id.equals(myUserId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * 특정 사용자의 Member 객체 조회
      */
     public Member getMember(String userId) {
@@ -299,5 +310,26 @@ public class Battle {
                 .filter(member -> member.getRole().equals(role))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Member not found"));
+    }
+
+    /**
+     * 대결이 완료되었는지 확인
+     */
+    public boolean isCompleted() {
+        return status == BattleStatus.COMPLETED;
+    }
+
+    /**
+     * 대결이 진행 중인지 확인
+     */
+    public boolean isInProgress() {
+        return status == BattleStatus.IN_PROGRESS;
+    }
+
+    /**
+     * 대결이 만료되었는지 확인
+     */
+    public boolean isExpired() {
+        return endDate.isBefore(LocalDateTime.now());
     }
 }

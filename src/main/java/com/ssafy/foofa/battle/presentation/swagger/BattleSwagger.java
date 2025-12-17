@@ -2,7 +2,7 @@ package com.ssafy.foofa.battle.presentation.swagger;
 
 import com.ssafy.foofa.battle.domain.Battle;
 import com.ssafy.foofa.battle.domain.BattleStatus;
-import com.ssafy.foofa.battle.presentation.dto.BattleListResponse;
+import com.ssafy.foofa.battle.presentation.dto.BattleResponse;
 import com.ssafy.foofa.battle.presentation.dto.BattleResultResponse;
 import com.ssafy.foofa.battle.presentation.dto.CreateBattleRequest;
 import com.ssafy.foofa.core.ErrorResponse;
@@ -136,7 +136,7 @@ public interface BattleSwagger {
                             "battleId": "67567d5e8a9b123456789abc",
                             "myScore" : 100,
                             "mealTimes": ["BREAKFAST", "LUNCH", "DINNER"],
-                            "remainingDays" : 3,
+                            "remainingHours" : 3,
                             "oppenentName" : "이름" ,
                             "oppenentScore" : 120,
                           }
@@ -147,7 +147,7 @@ public interface BattleSwagger {
             }
     )
     @GetMapping
-    ResponseEntity<List<BattleListResponse>> getBattlesByStatus(
+    ResponseEntity<List<BattleResponse>> getBattlesByStatus(
             @Parameter(
                     description = "대결 상태",
                     required = true,
